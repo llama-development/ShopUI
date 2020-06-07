@@ -1,0 +1,11 @@
+prefix: "§8» §3Shop §8| §7"
+no-permission: "&cYou have insufficient permissions to execute this command."
+invalid-amount: "&cPlease provide a valid amount."
+inventory-full: "&cYour inventory is too full."
+no-money: "&cYou need more money to buy this!"
+item-bought: "&aYou bought &e[1]x [0] &afor &e[2]$&a."
+
+shop-title: "Shop"
+shop-content: "In the shop you can buy many items."
+itembuy-info: "&fSpecify how much &7[0] &fyou want to buy.\n&71x [0] &fcosts &7[1]$&f!"
+itembuy-amount: "Amount"
