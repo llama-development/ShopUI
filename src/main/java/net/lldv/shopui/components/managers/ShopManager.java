@@ -6,6 +6,7 @@ import cn.nukkit.form.SimpleForm;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.Sound;
 import cn.nukkit.player.Player;
+import cn.nukkit.utils.Identifier;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.PlaySoundPacket;
 import net.lldv.LlamaEconomy.LlamaEconomy;
@@ -15,6 +16,7 @@ import java.text.NumberFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 
 public class ShopManager {
 
@@ -44,7 +46,7 @@ public class ShopManager {
     public static void openItemShop(Player player, String e) {
         String[] s = cachedShopItem.get(e);
         String name = s[0];
-        int itemID = Integer.parseInt(s[1]);
+        String itemID = s[1];
         int itemMeta = Integer.parseInt(s[2]);
         double price = Double.parseDouble(s[3]);
         CustomForm shopForm = Form.custom()
@@ -68,22 +70,24 @@ public class ShopManager {
         player.showFormWindow(shopForm);
     }
 
-    public static void sellItem(Player player, String name, int itemID, int amount, int itemMeta, double price) {
-        if (LlamaEconomy.getAPI().getMoney(player) >= price) {
-            Item finalItem = Item.get(itemID, itemMeta, amount);
-            if (player.getInventory().canAddItem(finalItem)) {
-                player.getInventory().addItem(finalItem);
-                LlamaEconomy.getAPI().reduceMoney(player, price);
-                player.sendMessage(Language.getAndReplace("item-bought", name, amount, formatDouble(price)));
-                playSound(player, Sound.NOTE_HARP);
+    public static void sellItem(Player player, String name, String itemID, int amount, int itemMeta, double price) {
+        CompletableFuture.runAsync(() -> {
+            if (LlamaEconomy.getAPI().getMoney(player) >= price) {
+                Item finalItem = Item.get(Identifier.fromString(itemID), itemMeta, amount);
+                if (player.getInventory().canAddItem(finalItem)) {
+                    player.getInventory().addItem(finalItem);
+                    LlamaEconomy.getAPI().reduceMoney(player, price);
+                    player.sendMessage(Language.getAndReplace("item-bought", name, amount, formatDouble(price)));
+                    playSound(player, Sound.NOTE_HARP);
+                } else {
+                    player.sendMessage(Language.getAndReplace("inventory-full"));
+                    playSound(player, Sound.NOTE_BASS);
+                }
             } else {
-                player.sendMessage(Language.getAndReplace("inventory-full"));
+                player.sendMessage(Language.getAndReplace("no-money"));
                 playSound(player, Sound.NOTE_BASS);
             }
-        } else {
-            player.sendMessage(Language.getAndReplace("no-money"));
-            playSound(player, Sound.NOTE_BASS);
-        }
+        });
     }
 
     public static String formatDouble(double d) {
